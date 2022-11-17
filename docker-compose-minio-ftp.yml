@@ -1,0 +1,28 @@
+services:
+  incoming-ftp:
+    container_name: incoming-ftp
+    build: ./docker/incoming-ftp
+    environment: 
+      - FTP_USER=ftp-user
+      - FTP_PASS=${FTP_PASS}
+    ports:
+      - '20-21:20-21/tcp'
+      - '40000-40009:40000-40009/tcp'
+    volumes:
+      - incoming-data:/data/
+  minio-forwarder:
+    container_name: minio-forwarder
+    build: ./docker/minio-forwarder
+    environment:
+      - LOGGING_LEVEL=${LOGGING_LEVEL}
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT}
+      - MINIO_BUCKET=${MINIO_BUCKET}
+      - MINIO_USER=${MINIO_USER}
+      - MINIO_PASSWORD=${MINIO_PASSWORD}
+      - MINIO_PATH=${MINIO_PATH}
+    volumes:
+      - incoming-data:/data/
+    depends_on:
+      - incoming-ftp
+volumes:
+  incoming-data:
