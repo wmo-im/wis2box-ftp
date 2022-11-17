@@ -30,6 +30,8 @@ RUN apk add --no-cache --update vsftpd==3.0.5-r1
 COPY [ "/vsftpd.conf", "/etc" ]
 COPY [ "/entrypoint.sh", "/" ]
 
+RUN chmod 0700 entrypoint.sh
+
 CMD [ "/usr/sbin/vsftpd" ]
 ENTRYPOINT [ "/entrypoint.sh" ]
 EXPOSE 20/tcp 21/tcp 40000-40009/tcp
