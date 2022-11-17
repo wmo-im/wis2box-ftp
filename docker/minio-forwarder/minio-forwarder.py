@@ -85,13 +85,24 @@ class MinioForwarder:
             self.observer.stop()
         self.observer.join()
 
-    def upload_to_minio(self,filepath):
+    def upload_to_minio(self,filepath: Path):
+        """
+        Upload to MinIO
+        :param filepath: file to be uploaded
+        :returns: `None`
+        """
+
         # remove the watchpath
         identifier = filepath.replace(WATCHPATH,'')
         LOGGER.debug(f"Put into {self.minio_bucket} : {filepath} as {identifier}")
         self.minio_client.fput_object(self.minio_bucket, identifier, filepath)
 
-    def on_created(self, event):
+    def on_created(self, event: object) -> None:
+        """
+        action to take when new file is created
+        :param event: watchdog-event
+        :returns: `None`
+        """
         LOGGER.debug(f'Incoming event path: {event.src_path}')
 
         LOGGER.info(f'Received file: {event.src_path}')

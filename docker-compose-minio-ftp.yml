@@ -1,7 +1,7 @@
 services:
-  incoming-ftp:
-    container_name: incoming-ftp
-    build: ./docker/incoming-ftp
+  vsftpd:
+    container_name: vsftpd
+    build: ./docker/vsftpd
     environment: 
       - FTP_USER=ftp-user
       - FTP_PASS=${FTP_PASS}
@@ -23,6 +23,6 @@ services:
     volumes:
       - incoming-data:/data/
     depends_on:
-      - incoming-ftp
+      - vsftpd
 volumes:
   incoming-data:
