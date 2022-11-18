@@ -50,9 +50,19 @@ class MinioForwarder:
     Class combining watchdog with forward to MinIO
     """
 
-    def __init__(self, minio_client: Minio, bucket_name: str):
+    def __init__(self, minio_client: Minio, minio_bucket: str, minio_path: str):
+        """
+        initializer
+
+        :param minio_client: Minio class instance defining minio end-point
+        :param minio_bucket: 'str' defining bucket to upload to
+        :param minio_path: 'str' defining the path to use for uploaded file
+
+        :returns: `None`
+        """
         self.minio_client = minio_client
-        self.minio_bucket = bucket_name
+        self.minio_bucket = minio_bucket
+        self.minio_path = minio_path
         self.observer = Observer()
         file_patterns = FILE_PATTERNS.split(',')
         LOGGER.info(f'Init event-handler on patterns: {file_patterns}')
@@ -93,7 +103,7 @@ class MinioForwarder:
         """
 
         # remove the watchpath
-        identifier = filepath.replace(WATCHPATH,'')
+        identifier = filepath.replace(WATCHPATH,'MINIO_PATH')
         LOGGER.debug(f"Put into {self.minio_bucket} : {filepath} as {identifier}")
         self.minio_client.fput_object(self.minio_bucket, identifier, filepath)
 
@@ -129,12 +139,13 @@ def main():
     minio_user = os.environ.get('MINIO_USER')
     minio_password = os.environ.get('MINIO_PASSWORD')
     minio_bucket = os.environ.get('MINIO_BUCKET')
+    minio_path = os.environ.get('MINIO_PATH')
     is_secure = False
     
     LOGGER.info(f"Prepare Minio-client to be used by MinioForwarder")
     LOGGER.info(f"minio_endpoint={minio_endpoint}")
     LOGGER.info(f"minio_user={minio_user}")
-    LOGGER.info(f"minio_bucket={minio_user}")
+    LOGGER.info(f"minio_bucket={minio_bucket}")
     if minio_endpoint.startswith('https://'):
         is_secure = True
         minio_endpoint = minio_endpoint.replace('https://', '')
@@ -147,7 +158,7 @@ def main():
         secret_key=minio_password,
         secure=is_secure)
 
-    w = MinioForwarder(minio_client=minio_client,bucket_name=minio_bucket)
+    w = MinioForwarder(minio_client=minio_client,minio_bucket=minio_bucket,minio_path=minio_path)
     LOGGER.info(f"Listening to {WATCHPATH} every {POLLING_INTERVAL} second")  # noqa
     w.run(path=WATCHPATH, polling_interval=int(POLLING_INTERVAL))
     w.disconnect()
