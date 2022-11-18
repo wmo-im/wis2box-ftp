@@ -1,0 +1,8 @@
+FTP_USER=ftp-user
+FTP_PASS=password
+LOGGING_LEVEL=INFO
+MINIO_ENDPOINT=http://localhost:9000
+MINIO_BUCKET=wis2box-incoming
+MINIO_USER=minio
+MINIO_PASSWORD=minio123
+MINIO_PATH=/foo/bar
