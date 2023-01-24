@@ -23,7 +23,10 @@ if [ ! -f /etc/ssh/ssh_host_rsa_key ]; then
     chmod 600 /etc/ssh/ssh_host_rsa_key || true
 fi
 
+
+
 mkdir -p /data/incoming
+mkdir -p /data/ftp-users
 
 # Create a group for the ftp user
 addgroup -g $GID -S ftpaccess
