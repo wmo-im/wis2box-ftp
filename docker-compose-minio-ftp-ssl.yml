@@ -5,12 +5,14 @@ services:
     environment: 
       - FTP_USER=${FTP_USER}
       - FTP_PASS=${FTP_PASS}
+      - FTP_SSL_ENABLED=${FTP_SSL_ENABLED}
     ports:
-      - '20-21:20-21/tcp'
+      - '20-22:20-22/tcp'
       - '40000-40009:40000-40009/tcp'
     volumes:
       - incoming-data:/data/
-      - ./ftp-log/:/var/log/
+      - ./mykey.key:/etc/ssl/private/vsftpd.key
+      - ./mycert.crt:/etc/ssl/certs/vsftpd.crt
   minio-forwarder:
     container_name: minio-forwarder
     build: ./docker/minio-forwarder

@@ -1,1 +1,5 @@
 env_file
+mycert.crt
+mykey.key
+docker/vsftpd/vsftpd-ssl-old.conf
+env_file
