@@ -23,14 +23,20 @@ FROM alpine:3.16.2
 ENV GID=1000 \
 	UID=1000
 
-RUN apk add --no-cache --update vsftpd==3.0.5-r1
+RUN apk add --no-cache --update vsftpd openssh supervisor 
 
-COPY [ "/vsftpd.conf", "/etc" ]
+# copy both conf-files, the entrypoint switch conf files based on which option is selected
+COPY [ "/vsftpd-nossl.conf", "/etc" ]
+COPY [ "/vsftpd-ssl.conf", "/etc" ]
+
 COPY [ "/entrypoint.sh", "/" ]
 
 RUN chmod 0700 entrypoint.sh
 
-CMD [ "/usr/sbin/vsftpd" ]
+COPY sshd_config /etc/ssh/sshd_config
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+CMD [ "/usr/bin/supervisord","-c","/etc/supervisor/conf.d/supervisord.conf" ]
 ENTRYPOINT [ "/entrypoint.sh" ]
-EXPOSE 20/tcp 21/tcp 40000-40009/tcp
+EXPOSE 20/tcp 21/tcp 22/tcp 40000-40009/tcp
 HEALTHCHECK CMD netstat -lnt | grep :21 || exit 1
