@@ -1,4 +1,2 @@
-env_file
 mycert.crt
 mykey.key
-env_file
