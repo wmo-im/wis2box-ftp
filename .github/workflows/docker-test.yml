@@ -17,8 +17,6 @@ jobs:
         pip3 install -r requirements.txt
     - name: build
       run: |
-        ls -lh
-        ls -lh test/
         docker-compose --env-file test/env_file -f test/docker-compose-test-nossl.yml build
     - name: run docker-compose using test/env_file
       run: |
@@ -32,4 +30,6 @@ jobs:
     - name: failed tests 🚩
       if: ${{ failure() }}
       run: |
+        ls -lh
+        ls -lh test/
         docker logs wis2box-ftp
