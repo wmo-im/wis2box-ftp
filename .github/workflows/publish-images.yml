@@ -9,6 +9,7 @@ on:
   push:
     branches:
       - main
+      - build
   release:
     types: [published]
 
@@ -23,11 +24,6 @@ jobs:
     permissions:
       packages: write
       contents: read
-    strategy:
-      matrix:
-        image:
-          - wis2box-ftp
-
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
@@ -57,16 +53,16 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: |
-            ${{ env.DOCKER_ORG }}/${{ matrix.image }}
-            ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
+            ${{ env.DOCKER_ORG }}/wis2box-ftp
+            ghcr.io/${{ github.repository_owner }}/wis2box-ftp
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest,enable=true
             type=pep440,pattern={{version}}
       - name: Build and push
         uses: docker/build-push-action@v2.7.0
         with:
-          context: ./${{ matrix.image }}
-          file: ./${{ matrix.image }}/Dockerfile
+          context: .
+          file: Dockerfile
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/arm64, linux/amd64
