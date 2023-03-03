@@ -19,22 +19,49 @@
 #
 ###############################################################################
 
-FROM alpine:3.16.2
+FROM ubuntu:focal
 ENV GID=1000 \
 	UID=1000
 
-RUN apk add --no-cache --update vsftpd openssh supervisor 
+ARG DEBIAN_FRONTEND=noninteractive
+ARG USER_ID=1014
+ARG GROUP_ID=1050
 
-# copy both conf-files, the entrypoint switch conf files based on which option is selected
-COPY [ "/vsftpd-nossl.conf", "/etc" ]
-COPY [ "/vsftpd-ssl.conf", "/etc" ]
+RUN apt-get update && apt-get -y install vsftpd openssh-server supervisor python3 python3-pip libpam-pwdfile apache2-utils
+RUN pip3 install watchdog minio
 
-COPY [ "/entrypoint.sh", "/" ]
+RUN usermod -u ${USER_ID} ftp
+RUN groupmod -g ${GROUP_ID} ftp
 
-RUN chmod 0700 entrypoint.sh
+ENV FTP_USER **String**
+ENV FTP_PASS **Random**
+ENV PASV_ADDRESS **IPv4**
+ENV PASV_ADDR_RESOLVE NO
+ENV PASV_ENABLE YES
+ENV PASV_MIN_PORT 21100
+ENV PASV_MAX_PORT 21110
+ENV XFERLOG_STD_FORMAT NO
+ENV FILE_OPEN_MODE 0666
+ENV LOCAL_UMASK 077
+ENV REVERSE_LOOKUP_ENABLE YES
+ENV PASV_PROMISCUOUS NO
+ENV PORT_PROMISCUOUS NO
+
+COPY vsftpd.conf /etc/vsftpd/
+COPY vsftpd_virtual /etc/pam.d/
+COPY run-vsftpd.sh /usr/sbin/
+
+RUN chmod +x /usr/sbin/run-vsftpd.sh
+RUN mkdir -p /home/vsftpd/
+RUN chown -R ftp:ftp /home/vsftpd/
 
 COPY sshd_config /etc/ssh/sshd_config
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY entrypoint.sh /entrypoint.sh
+COPY minio-forwarder.py /usr/src/app/
+
+VOLUME /home/vsftpd
+VOLUME /var/log/vsftpd
 
 CMD [ "/usr/bin/supervisord","-c","/etc/supervisor/conf.d/supervisord.conf" ]
 ENTRYPOINT [ "/entrypoint.sh" ]

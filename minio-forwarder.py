@@ -33,11 +33,10 @@ from watchdog.events import PatternMatchingEventHandler
 
 from minio import Minio
 
-
+logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 LOGGER = logging.getLogger('MinioForwarder')
-logging.basicConfig(stream=sys.stdout)
 
-WATCHPATH = '/data/incoming'
+WATCHPATH = '/home/vsftpd/'
 POLLING_INTERVAL = 5
 FILE_PATTERNS = '*.*'
 
@@ -50,19 +49,19 @@ class MinioForwarder:
     Class combining watchdog with forward to MinIO
     """
 
-    def __init__(self, minio_client: Minio, minio_bucket: str, minio_path: str):
+    def __init__(self, minio_client: Minio, minio_bucket: str, watchpath: str):
         """
         initializer
 
         :param minio_client: Minio class instance defining minio end-point
         :param minio_bucket: 'str' defining bucket to upload to
-        :param minio_path: 'str' defining the path to use for uploaded file
+        :param watchpath: 'str' path defining local directory to be watched
 
         :returns: `None`
         """
         self.minio_client = minio_client
         self.minio_bucket = minio_bucket
-        self.minio_path = minio_path
+        self.watchpath = watchpath
         self.observer = Observer()
         file_patterns = FILE_PATTERNS.split(',')
         LOGGER.info(f'Init event-handler on patterns: {file_patterns}')
@@ -72,9 +71,10 @@ class MinioForwarder:
             ignore_patterns=[],
             ignore_directories=True)
 
-        self.event_handler.on_created = self.on_created
+        self.event_handler.on_any_event = self.on_any_event
+        self.event_handler.on_closed = self.on_create_update
 
-    def run(self, path: Path, polling_interval: int):
+    def run(self, polling_interval: int):
         """
         Run watch
         :param path: `pathlib.Path` of directory path
@@ -82,8 +82,8 @@ class MinioForwarder:
         :returns: `None`
         """
 
-        LOGGER.info(f'Starting watchdog-observer on path={path}')
-        self.observer.schedule(self.event_handler, path, recursive=True)
+        LOGGER.info(f'Starting watchdog-observer on path={self.watchpath}')
+        self.observer.schedule(self.event_handler, self.watchpath, recursive=True)
         self.observer.start()
         try:
             while True:
@@ -103,11 +103,14 @@ class MinioForwarder:
         """
 
         # remove the watchpath
-        identifier = filepath.replace(WATCHPATH,'MINIO_PATH')
-        LOGGER.debug(f"Put into {self.minio_bucket} : {filepath} as {identifier}")
+        identifier = filepath.replace(self.watchpath,'')
+        LOGGER.info(f"Put into {self.minio_bucket} : {filepath} as {identifier}")
         self.minio_client.fput_object(self.minio_bucket, identifier, filepath)
 
-    def on_created(self, event: object) -> None:
+    def on_any_event(self, event: object) -> None:
+        LOGGER.debug(event)
+
+    def on_create_update(self, event: object) -> None:
         """
         action to take when new file is created
         :param event: watchdog-event
@@ -132,14 +135,13 @@ def main():
     """
 
     LOGGING_LOGLEVEL = os.environ.get('LOGGING_LEVEL','INFO')
-    print(LOGGING_LOGLEVEL)
+    print(f"Log level = {LOGGING_LOGLEVEL}")
     LOGGER.setLevel(LOGGING_LOGLEVEL)
 
     minio_endpoint = os.environ.get('MINIO_ENDPOINT')
-    minio_user = os.environ.get('MINIO_USER')
-    minio_password = os.environ.get('MINIO_PASSWORD')
-    minio_bucket = os.environ.get('MINIO_BUCKET')
-    minio_path = os.environ.get('MINIO_PATH')
+    minio_user = os.environ.get('MINIO_ROOT_USER')
+    minio_password = os.environ.get('MINIO_ROOT_PASSWORD')
+    minio_bucket = 'wis2box-incoming'
     is_secure = False
     
     LOGGER.info(f"Prepare Minio-client to be used by MinioForwarder")
@@ -152,15 +154,18 @@ def main():
     else:
         minio_endpoint = minio_endpoint.replace('http://', '')
     
+    ftp_user = os.environ.get('FTP_USER')
+    watchpath = f'/home/vsftpd/{ftp_user}'
+
     minio_client = Minio(
         endpoint=minio_endpoint,
         access_key=minio_user,
         secret_key=minio_password,
         secure=is_secure)
-
-    w = MinioForwarder(minio_client=minio_client,minio_bucket=minio_bucket,minio_path=minio_path)
-    LOGGER.info(f"Listening to {WATCHPATH} every {POLLING_INTERVAL} second")  # noqa
-    w.run(path=WATCHPATH, polling_interval=int(POLLING_INTERVAL))
+    # hardcode watch-path to match vsftpd-home
+    w = MinioForwarder(minio_client=minio_client,minio_bucket=minio_bucket,watchpath=watchpath)
+    LOGGER.info(f"Listening to {watchpath} every {POLLING_INTERVAL} second")  # noqa
+    w.run(polling_interval=int(POLLING_INTERVAL))
     w.disconnect()
 
 
