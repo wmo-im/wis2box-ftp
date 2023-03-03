@@ -1,0 +1,33 @@
+name: test docker
+
+on: [ push, pull_request ]
+
+jobs:
+  docker-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      name: setup Python
+      with:
+        python-version: 3.8
+    - name: install testing requirements 📦
+      working-directory: test
+      run: |
+        pip3 install -r requirements.txt
+    - name: build
+      run: |
+        docker-compose --env-file test/env_file -f test/docker-compose-test-nossl.yml build
+    - name: run docker-compose using test/env_file
+      run: |
+        docker-compose --env-file test/env_file -f test/docker-compose-test-nossl.yml up -d 
+        sleep 5
+    - name: run tests 
+      run: |
+        python3 test/run-tests.py
+    - name: failed tests 🚩
+      if: ${{ failure() }}
+      run: |
+        docker logs wis2box-ftp
+        docker logs minio
+        docker logs createbuckets

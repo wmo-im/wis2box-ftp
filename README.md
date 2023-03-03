@@ -1,41 +1,30 @@
-# minio-ftp-forwarder
-sftp forwarding files to MinIO endpoint. Docker-stack consisting of 2 containers: sftp-container (vsftp,openssh,supervisor on alpine) and a python-container running watchdog on the sftp-directory and forwarder files to MinIO.
+# wis2box-ftp
 
-## how to use
+An additional service for the wis2box to enable forwarding data to MinIO via FTP.
 
-Obtain SSL-certificates for your host and reference them in the contents of your env_file. 
+Docker-container runs vsftp, openssh and a python-script using to watchdog to forward files from the sftp-directory to MinIO.
+
+## without SSL
+
+```bash
+FTP_USER=wis2box
+FTP_PASS=wis2box123
+FTP_SSL_ENABLED=false
+LOGGING_LEVEL=INFO
+WIS2BOX_STORAGE_USER=minio
+WIS2BOX_STORAGE_PASSWORD=minio123
+```
+
+## with SSL
+
+Set FTP_ENABLED=true
+
+Obtain SSL-certificates for your host, and map them to /etc/ssl/certs/vsftpd.crt and /etc/ssl/private/vsftpd.key in the container
 
 To obtain self-signed certificates on Ubuntu use the openssh command as follows:
 
-Generate private key:
-
-Generate certificate-request and provide information as requested:
-
-Use the certificate-request to create a self-signed certificate valid for 365 days:
 ```bash
-openssl.exe x509 -req -days 365 -in /etc/ssl/certs/mycsr.csr -signkey /etc/ssl/certs/mykey.key -out /etc/ssl/certs/mycert.crt
-```
-
-```
-Update the contents of env_file to set ftp-user/password and specify target MinIO endpoint and path:
-
-```bash
-FTP_PASS=password
-LOGGING_LEVEL=INFO
-MINIO_ENDPOINT=http://localhost:9000
-MINIO_BUCKET=wis2box-incoming
-MINIO_USER=minio
-MINIO_PASSWORD=minio123
-MINIO_PATH=/foo/bar
-SFTP_ENABLED=true
-SFTP_PRIVATE_KEY_FILE=mykey.key
-SFTP_CERT_FILE=mycert.crt
-```
-
-Then start with
-
-```bash
-docker-compose -f docker-compose-sftp-to-minio.yml --env-file env_file up -d --build
+sudo openssl req -x509 -newkey rsa:4096 -keyout mykey.key -out mycert.crt -sha256 -days 365 -nodes
 ```
 
 ## on a remote host accessed using ssh
