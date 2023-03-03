@@ -27,6 +27,4 @@ jobs:
     - name: failed tests 🚩
       if: ${{ failure() }}
       run: |
-        ls -lh
-        ls -lh test/
         docker logs wis2box-ftp
