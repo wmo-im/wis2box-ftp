@@ -34,6 +34,6 @@ services:
       /bin/sh -c "
       /usr/bin/mc alias set myminio http://minio:9000 ${WIS2BOX_STORAGE_USER} ${WIS2BOX_STORAGE_PASSWORD};
       /usr/bin/mc mb myminio/wis2box-incoming;
-      /usr/bin/mc policy set public myminio/wis2box-incoming;
+      /usr/bin/mc anonymous set download myminio/wis2box-incoming; 
       exit 0;
       "
