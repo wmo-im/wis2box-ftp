@@ -29,3 +29,5 @@ jobs:
       if: ${{ failure() }}
       run: |
         docker logs wis2box-ftp
+        docker logs minio
+        docker logs createbuckets

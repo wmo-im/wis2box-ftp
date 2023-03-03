@@ -17,7 +17,7 @@ session.quit()
 print('wait 5 seconds')
 time.sleep(5)
 print('check file is in bucket')
-res = requests.get('http://localhost:9000/wis2box-incoming/hello_world.txt')
+res = requests.get('http://127.0.0.1:9000/wis2box-incoming/hello_world.txt')
 print(res)
 # raise exception in case of failure
 res.raise_for_status()
