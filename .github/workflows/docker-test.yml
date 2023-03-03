@@ -11,8 +11,14 @@ jobs:
       name: setup Python
       with:
         python-version: 3.8
+    - name: install testing requirements 📦
+      working-directory: test
+      run: |
+        pip3 install -r requirements.txt
     - name: build
       run: |
+        ls -lh
+        ls -lh test/
         docker-compose --env-file test/env_file -f test/docker-compose-test-nossl.yml build
     - name: run docker-compose using test/env_file
       run: |
