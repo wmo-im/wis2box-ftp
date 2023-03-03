@@ -60,7 +60,7 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY entrypoint.sh /entrypoint.sh
 COPY minio-forwarder.py /usr/src/app/
 
-RUN chmod +x /usr/src/app/docker-entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 VOLUME /home/vsftpd
 VOLUME /var/log/vsftpd
