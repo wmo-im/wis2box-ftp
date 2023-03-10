@@ -68,4 +68,3 @@ VOLUME /var/log/vsftpd
 CMD [ "/usr/bin/supervisord","-c","/etc/supervisor/conf.d/supervisord.conf" ]
 ENTRYPOINT [ "/entrypoint.sh" ]
 EXPOSE 20/tcp 21/tcp 22/tcp 40000-40009/tcp
-HEALTHCHECK CMD netstat -lnt | grep :21 || exit 1
