@@ -4,15 +4,19 @@ An additional service for the wis2box to enable forwarding data to MinIO via FTP
 
 Docker-container runs vsftp, openssh and a python-script using to watchdog to forward files from the sftp-directory to MinIO.
 
-## without SSL
+## Environment variables
+
+The wis2box-ftp requires the following environment-variables:
 
 ```bash
-FTP_USER=wis2box
-FTP_PASS=wis2box123
-FTP_SSL_ENABLED=false
-LOGGING_LEVEL=INFO
-WIS2BOX_STORAGE_USER=minio
-WIS2BOX_STORAGE_PASSWORD=minio123
+FTP_USER=wis2box # define your FTP-username 
+FTP_PASS=wis2box123 #  define your FTP-password 
+PASV_ADDRESS=localhost # set this to your publicly available hostname
+FTP_SSL_ENABLED=False # set to True when using SSL-certificates for FTPS/SFTP
+LOGGING_LEVEL=INFO # set logging-level
+MINIO_ENDPOINT=http://localhost:9000 # set this to the minio-endpoint for your wis2box 
+MINIO_ROOT_USER=minio # minio username for your minio-endpoint
+MINIO_ROOT_PASSWORD=minio123 # minio password for your minio-endpoint
 ```
 
 ## with SSL
