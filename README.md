@@ -12,7 +12,7 @@ The wis2box-ftp requires the following environment-variables:
 FTP_USER=wis2box # define your FTP-username 
 FTP_PASS=wis2box123 #  define your FTP-password 
 PASV_ADDRESS=localhost # set this to your publicly available hostname
-FTP_SSL_ENABLED=False # set to True when using SSL-certificates for FTPS/SFTP
+FTP_SSL_ENABLED=FALSE # set to TRUE when using SSL-certificates for FTPS/SFTP
 LOGGING_LEVEL=INFO # set logging-level
 MINIO_ENDPOINT=http://localhost:9000 # set this to the minio-endpoint for your wis2box 
 MINIO_ROOT_USER=minio # minio username for your minio-endpoint
