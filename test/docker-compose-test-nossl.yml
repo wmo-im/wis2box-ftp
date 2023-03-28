@@ -5,14 +5,17 @@ services:
     environment:
       - FTP_USER=${FTP_USER}
       - FTP_PASS=${FTP_PASS}
-      - FTP_SSL_ENABLED=${FTP_SSL_ENABLED}
-      - LOGGING_LEVEL=${LOGGING_LEVEL}
+      - PASV_ADDRESS=${FTP_HOST:-localhost}
+      - FTP_SSL_ENABLED=${FTP_SSL_ENABLED:-FALSE}
+      - LOGGING_LEVEL=${LOGGING_LEVEL:-WARNING}
       - MINIO_ENDPOINT=${WIS2BOX_STORAGE_ENDPOINT:-http://minio:9000}
-      - MINIO_ROOT_USER=${WIS2BOX_STORAGE_USER}
-      - MINIO_ROOT_PASSWORD=${WIS2BOX_STORAGE_PASSWORD}
+      - MINIO_ROOT_USER=${WIS2BOX_STORAGE_USER:-minio}
+      - MINIO_ROOT_PASSWORD=${WIS2BOX_STORAGE_PASSWORD:-minio123}
     ports:
       - '20-21:20-21/tcp'
-      - '21100-21110:21100-21110/tcp'
+      - '40000-40009:40000-40009/tcp'
+    volumes:
+      - wis2box-ftp:/home/vsftpd/
   
   minio:
     container_name: minio
@@ -37,3 +40,6 @@ services:
       /usr/bin/mc anonymous set download myminio/wis2box-incoming; 
       exit 0;
       "
+
+volumes:
+  wis2box-ftp:
