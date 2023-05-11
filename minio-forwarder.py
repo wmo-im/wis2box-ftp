@@ -73,6 +73,7 @@ class MinioForwarder:
 
         self.event_handler.on_any_event = self.on_any_event
         self.event_handler.on_closed = self.on_create_update
+        self.event_handler.on_moved = self.on_create_update
 
     def run(self, polling_interval: int):
         """
@@ -116,13 +117,19 @@ class MinioForwarder:
         :param event: watchdog-event
         :returns: `None`
         """
-        LOGGER.debug(f'Incoming event path: {event.src_path}')
+        LOGGER.debug(f'event-type={event.event_type}')
+        path = event.src_path if event.event_type != 'moved' else event.dest_path
+        LOGGER.debug(f'path={path}')
 
-        LOGGER.info(f'Received file: {event.src_path}')
+        if path[-3:] == 'tmp':
+            LOGGER.info('skip tmp file')
+            return
+
+        LOGGER.info(f'Received file: {path}')
         LOGGER.info('Upload file to MinIO')
 
         try:
-            self.upload_to_minio(event.src_path)
+            self.upload_to_minio(path)
         except Exception as err:
             LOGGER.error(f'Failed to forward to MinIO: {err}')
             return
